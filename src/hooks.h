@@ -1,6 +1,5 @@
 #pragma once
 #include "ingame-clock.h"
-#include "image-loader.h"
 
 namespace Hooks {
 
@@ -25,7 +24,6 @@ namespace Hooks {
 	private:
 		static void RendererInit();
 		static void ApplyClockStyle();		
-		//static bool InitClockTexture(ID3D11Device* device);
 		static inline REL::Relocation<decltype(RendererInit)> func;
 		
 		static inline bool bInitialized = false;

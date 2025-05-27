@@ -22,8 +22,7 @@ namespace Hooks {
     }
 
 	void Renderer::Install() {
-        //const REL::Relocation<uintptr_t> presentHook{ REL::VariantID(75461, 77246, 0xDBBDD0) };         // D6A2B0, DA5BE0, DBBDD0
-        const REL::Relocation<uintptr_t> presentHook{ RELOCATION_ID(75461, 77246), OFFSET(0x9, 0x9)};         // D6A2B0, DA5BE0, DBBDD0
+        const REL::Relocation<uintptr_t> presentHook{ RELOCATION_ID(75461, 77246), OFFSET(0x9, 0x9)};
         auto& trampoline = SKSE::GetTrampoline();
         func = trampoline.write_call<5>(presentHook.address(), Present);
 	}
@@ -116,26 +115,6 @@ namespace Hooks {
 
         style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
     }
-    //bool SwapChainHook::InitClockTexture(ID3D11Device* device)
-    //{
-    //    return false;
-    //    if (!Settings::Values::should_load_pic.GetValue()) {
-    //        return false;
-    //    }
-
-    //    if (IngameClock::ClockOverlay::clockTexture) {
-    //        // Already initialized — skip
-    //        return true;
-    //    }
-
-    //    IngameClock::ClockOverlay::clockTexture = LoadTextureFromFile(device, Settings::Constants::png_file_path);
-    //    if (!IngameClock::ClockOverlay::clockTexture) {
-    //        logs::error("Failed to load clock texture.");
-    //        return false;
-    //    }
-    //    IngameClock::ClockOverlay::clockTextureID = (ImTextureID)(intptr_t)IngameClock::ClockOverlay::clockTexture.Get();
-    //    return true;
-    //}
 
     void SwapChainHook::Install() {
         REL::Relocation<std::uintptr_t> target{ RELOCATION_ID(75595, 77226), OFFSET(0x9, 0x275) };  // BSGraphics::InitD3D
@@ -146,9 +125,6 @@ namespace Hooks {
     {
         Renderer::Install(); 
         SwapChainHook::Install();
-
-        //UIHooks::Hook();
-
         //FrameUpdate::Install();
                
     }   

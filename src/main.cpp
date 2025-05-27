@@ -1,11 +1,10 @@
 #include "hooks.h"
 #include "settings.h"
-#include "image-loader.h"
 
 void ListenerCallback(SKSE::MessagingInterface::Message* a_message)
 {
 	if (a_message->type == SKSE::MessagingInterface::kDataLoaded) {
-		//Hooks::InstallAllHooks();
+
 	}
 }
 
