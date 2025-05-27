@@ -1,0 +1,16 @@
+[Settings.Debugging]
+bEnableDebugLogs = true
+
+[Settings.Toggles]
+bShowClock = true
+
+[Settings.Positions]
+fPositionX = 1600.0
+fPositionY = 5.0
+
+[Settings.Scale]
+fClockScale = 1.5
+
+[Settings.Misc]
+fClockAlpha = 0.0
+uClockColor = "#4cbb17fc"

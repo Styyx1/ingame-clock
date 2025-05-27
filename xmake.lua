@@ -5,7 +5,7 @@ set_xmakever("2.8.2")
 includes("lib/commonlibsse")
 
 -- set project
-set_project("commonlibsse-template")
+set_project("ingame-clock")
 set_version("1.0.0")
 set_license("GPL-3.0")
 
@@ -23,14 +23,25 @@ set_policy("package.requires_lock", true)
 -- set configs
 set_config("skyrim_ae", true)
 
+set_config("rex_toml", true)
+
+add_extrafiles("release/**.toml")
 -- targets
-target("commonlibsse-template")
-    -- add dependencies to target
+
+-- ImGui static lib target
+target("imgui")
+    set_kind("static")
+    add_files("lib/imgui/*.cpp")
+    add_includedirs("lib/imgui", {public = true})
+
+target("ingame-clock")    
+
     add_deps("commonlibsse")
+    add_deps("imgui")
 
     -- add commonlibsse plugin
     add_rules("commonlibsse.plugin", {
-        name = "commonlibsse-template",
+        name = "ingame-clock",
         author = "styyx",
         description = "SKSE64 plugin template using CommonLibSSE"
     })
@@ -39,7 +50,14 @@ target("commonlibsse-template")
     add_files("src/**.cpp")
     add_headerfiles("src/**.h")
     add_includedirs("src")
+    add_includedirs("lib/imgui")
     set_pcxxheader("src/pch.h")
+    add_includedirs("lib/imgui")
+    add_includedirs("lib/imgui/backends")
+    add_files("lib/imgui/imgui*.cpp")
+    add_files("lib/imgui/backends/imgui_impl_dx11.cpp")
+    add_files("lib/imgui/backends/imgui_impl_win32.cpp")
+    add_headerfiles("src/extern/**.h")
 
 after_build(function(target)
     local copy = function(env, ext)
