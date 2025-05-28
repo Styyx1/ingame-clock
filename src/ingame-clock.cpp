@@ -36,13 +36,8 @@ bool IngameClock::ClockOverlay::IsVisible()
 
 Settings::Values::RGBA IngameClock::ClockOverlay::GetClockColor()
 {
-    textColor = Settings::Values::hexToRGBA(Settings::Values::clock_text_color.GetValue());
+    textColor = Settings::Values::hexToRGBA(Settings::Values::clock_text_color.GetValue(), Settings::Values::clock_alpha.GetValue());
     return textColor;
-}
-
-inline void IngameClock::ClockOverlay::DrawWithImage()
-{
-
 }
 
 void IngameClock::ClockOverlay::SetClockText(std::string &input)
@@ -53,13 +48,38 @@ void IngameClock::ClockOverlay::SetClockText(std::string &input)
         int hour = static_cast<int>(calendar->GetCurrentGameTime() * 24) % 24;
         int minute = static_cast<int>((calendar->GetCurrentGameTime() * 1440)) % 60;
         std::string day = calendar->GetDayName();
-        input = std::format("{}: {:02}:{:02}",day, hour, minute);
-
-    } else {
+        if (Settings::Values::use_24_hour_format.GetValue()) {
+            input = std::format("{}: {:02}:{:02}",day, hour, minute);
+        }
+        else {
+			if (hour >= 12) {
+				hour -= 12;
+				if (hour == 0) hour = 12; // Handle midnight case
+				input = std::format("{}: {:02}:{:02} PM", day, hour, minute);
+			}
+            else {
+                if (hour == 0) hour = 12; // Handle noon case
+                input = std::format("{}: {:02}:{:02} AM", day, hour, minute);
+            }
+        }
+    } 
+    else {
         auto now = std::chrono::system_clock::now();
         auto time = std::chrono::system_clock::to_time_t(now);
         std::tm localTime{};
         localtime_s(&localTime, &time);
-        input = std::format("Real Time: {:02}:{:02}:{:02}", localTime.tm_hour, localTime.tm_min, localTime.tm_sec);
+		if (Settings::Values::use_24_hour_format.GetValue())
+			input = std::format("Real Time: {:02}:{:02}:{:02}", localTime.tm_hour, localTime.tm_min, localTime.tm_sec);
+        else {			
+            if (localTime.tm_hour >= 12) {
+                int hour = localTime.tm_hour - 12;
+                if (hour == 0) hour = 12; // Handle midnight case
+                input = std::format("Real Time: {:02}:{:02}:{:02} PM", hour, localTime.tm_min, localTime.tm_sec);
+            }
+			else {
+				if (localTime.tm_hour == 0) localTime.tm_hour = 12; // Handle noon case
+				input = std::format("Real Time: {:02}:{:02}:{:02} AM", localTime.tm_hour, localTime.tm_min, localTime.tm_sec);
+			}
+        }
     }
 }

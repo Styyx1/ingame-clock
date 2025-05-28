@@ -18,8 +18,6 @@ namespace IngameClock
         static inline Settings::Values::RGBA textColor{0xFF, 0xFF, 0xFF, 0xFF};
 
     private:
-        inline void DrawWithImage();
-        inline void DrawOnlyText();
         static void SetClockText(std::string &input);
         inline static bool visible = true;
         inline static float scale = 1.0f;

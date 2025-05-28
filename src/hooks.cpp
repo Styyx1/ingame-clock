@@ -79,6 +79,20 @@ namespace Hooks {
             io.IniFilename = nullptr;
             io.FontGlobalScale = Settings::Values::clock_scale.GetValue();
 
+            std::string fontPath = Settings::Constants::font_file_path + Settings::Values::font_name.GetValue();
+
+            ImFont* font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), Settings::Values::font_size.GetValue());
+            if (!font) {
+                // fallback to default font if loading failed
+
+                ImFontConfig config;
+                config.SizePixels = Settings::Values::font_size.GetValue();  // or whatever size you want
+
+                font = io.Fonts->AddFontDefault(&config);
+                // Optionally log this failure somewhere
+                logs::warn("Failed to load font at {}, falling back to default font. ",fontPath);
+            }
+
             if (!ImGui_ImplWin32_Init(desc.OutputWindow)) {
                 logs::error("ImGui Win32 init failed");
                 return;
@@ -114,6 +128,22 @@ namespace Hooks {
         style.ItemSpacing = ImVec2(6, 4);
 
         style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
+    }
+
+    ImFont* SwapChainHook::LoadClockFont(float a_fontSize, float a_iconSize)
+    {
+        const auto& io = ImGui::GetIO();
+        std::string fontPath = Settings::Constants::font_file_path + Settings::Values::font_name.GetValue();
+        const auto font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), a_fontSize);
+
+        ImFontConfig icon_config;
+        icon_config.MergeMode = true;
+        icon_config.PixelSnapH = true;
+        icon_config.OversampleH = icon_config.OversampleV = 1;
+
+        io.Fonts->AddFontDefault();
+
+        return font;
     }
 
     void SwapChainHook::Install() {

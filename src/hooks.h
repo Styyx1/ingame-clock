@@ -23,7 +23,8 @@ namespace Hooks {
 		static void Install();
 	private:
 		static void RendererInit();
-		static void ApplyClockStyle();		
+		static void ApplyClockStyle();
+		static ImFont* LoadClockFont(float a_fontSize, float a_iconSize);
 		static inline REL::Relocation<decltype(RendererInit)> func;
 		
 		static inline bool bInitialized = false;

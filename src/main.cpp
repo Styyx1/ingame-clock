@@ -8,7 +8,6 @@ void ListenerCallback(SKSE::MessagingInterface::Message* a_message)
 	}
 }
 
-
 SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
 {
 	SKSE::Init(a_skse);
