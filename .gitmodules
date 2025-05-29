@@ -4,3 +4,6 @@
 [submodule "lib/imgui"]
 	path = lib/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "extern/CLibUtil"]
+	path = extern/CLibUtil
+	url = https://github.com/powerof3/CLibUtil.git

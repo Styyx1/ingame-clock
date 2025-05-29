@@ -1,6 +1,9 @@
-#include <hooks.h>
+#include "hooks.h"
+#include "settings.h"
 
 using namespace RE;
+
+             // Use ImGui::GetCurrentContext()
 
 namespace Hooks {
     void Hooks::Renderer::Present(uint32_t a1)
@@ -10,7 +13,8 @@ namespace Hooks {
             ImGui_ImplWin32_NewFrame();
             ImGui::NewFrame();
 
-            IngameClock::ClockOverlay::Draw();
+			const auto ingameClock = IngameClock::ClockOverlay::GetSingleton();
+            ingameClock->Draw();
 
             ImGui::Render();
             ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -21,13 +25,18 @@ namespace Hooks {
         func(a1);
     }
 
-	void Renderer::Install() {
-        const REL::Relocation<uintptr_t> presentHook{ RELOCATION_ID(75461, 77246), OFFSET(0x9, 0x9)};
+    void Renderer::Install() {
+        const REL::Relocation<uintptr_t> presentHook{ RELOCATION_ID(75461, 77246), OFFSET(0x9, 0x9) };
         auto& trampoline = SKSE::GetTrampoline();
         func = trampoline.write_call<5>(presentHook.address(), Present);
-	}
+    }
     std::int32_t FrameUpdate::FrameUpdateHook(float a_delta)
     {
+        if (frameUpdateCount > 150) {
+            frameUpdateCount = 0.0f;
+
+        }
+        frameUpdateCount++;
         return frameUpdateHook(a_delta);
     }
     void FrameUpdate::Install() {
@@ -39,7 +48,9 @@ namespace Hooks {
     {
         func();  // call original
         if (!bInitialized) {
+			const auto settings = Settings::Manager::GetSingleton();
             auto renderer = RE::BSGraphics::Renderer::GetSingleton();
+			const auto ingameClock = IngameClock::ClockOverlay::GetSingleton();
             if (!renderer) {
                 logs::error("Renderer not found!");
                 return;
@@ -69,28 +80,29 @@ namespace Hooks {
             }
 
             if (!bColorApplied) {
-                IngameClock::ClockOverlay::textColor = IngameClock::ClockOverlay::GetClockColor();
+				logs::debug("Applying clock color");
+                ingameClock->textColor = ingameClock->GetClockColor();
                 bColorApplied = true;
             }
 
 
             auto& io = ImGui::GetIO();
-            io.ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
+            io.ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad | ImGuiConfigFlags_NavEnableSetMousePos;
             io.IniFilename = nullptr;
-            io.FontGlobalScale = Settings::Values::clock_scale.GetValue();
+            io.FontGlobalScale = settings->clock_scale.GetValue();
 
-            std::string fontPath = Settings::Constants::font_file_path + Settings::Values::font_name.GetValue();
+            std::string fontPath = Settings::Constants::font_file_path + settings->font_name.GetValue();
 
-            ImFont* font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), Settings::Values::font_size.GetValue());
+            ImFont* font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->font_size.GetValue());
             if (!font) {
                 // fallback to default font if loading failed
 
                 ImFontConfig config;
-                config.SizePixels = Settings::Values::font_size.GetValue();  // or whatever size you want
+                config.SizePixels = (float)settings->font_size.GetValue();  // or whatever size you want
 
                 font = io.Fonts->AddFontDefault(&config);
                 // Optionally log this failure somewhere
-                logs::warn("Failed to load font at {}, falling back to default font. ",fontPath);
+                logs::warn("Failed to load font at {}, falling back to default font. ", fontPath);
             }
 
             if (!ImGui_ImplWin32_Init(desc.OutputWindow)) {
@@ -105,8 +117,18 @@ namespace Hooks {
 
             logs::info("ImGui initialized.");
             bInitialized = true;
+
+            WndProc::func = reinterpret_cast<WNDPROC>(
+                SetWindowLongPtrA(
+                    desc.OutputWindow,
+                    GWLP_WNDPROC,
+                    reinterpret_cast<LONG_PTR>(WndProc::thunk)));
+            if (!WndProc::func) {
+                logs::error("SetWindowLongPtrA failed!");
+            }
+
         }
-        
+
     }
     void SwapChainHook::ApplyClockStyle()
     {
@@ -130,10 +152,11 @@ namespace Hooks {
         style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
     }
 
-    ImFont* SwapChainHook::LoadClockFont(float a_fontSize, float a_iconSize)
+    ImFont* SwapChainHook::LoadClockFont(float a_fontSize)
     {
+		const auto settings = Settings::Manager::GetSingleton();
         const auto& io = ImGui::GetIO();
-        std::string fontPath = Settings::Constants::font_file_path + Settings::Values::font_name.GetValue();
+        std::string fontPath = Settings::Constants::font_file_path + settings->font_name.GetValue();
         const auto font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), a_fontSize);
 
         ImFontConfig icon_config;
@@ -153,10 +176,7 @@ namespace Hooks {
     }
     void InstallAllHooks()
     {
-        Renderer::Install(); 
+        Renderer::Install();
         SwapChainHook::Install();
-        //FrameUpdate::Install();
-               
-    }   
-
+    }
 }

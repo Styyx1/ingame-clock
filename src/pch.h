@@ -29,9 +29,14 @@
 #include <imgui.h>
 #include <backends/imgui_impl_dx11.h>
 #include <backends/imgui_impl_win32.h>
+#include <shared_mutex>
+#include <CLIBUtil/utils.hpp>
 
 namespace logs = SKSE::log;
 using namespace std::literals;
+using namespace clib_util;
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);   
 
 namespace stl
 {

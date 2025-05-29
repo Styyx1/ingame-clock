@@ -6,11 +6,11 @@ bEnableDebugLogs = true
 # Show or hide the clock
 bShowClock = true 
 # Use 24-hour format for the clock
-bUse24HourFormat = false 
+bUse24HourFormat = false
 
 [Settings.Positions]
 # X position of the clock on the screen. 0 is left edge
-fPositionX = 1600.0 
+fPositionX = 800.0 
 # Y position of the clock on the screen. 0 is top edge
 fPositionY = 5.0 
 
@@ -29,4 +29,7 @@ uClockColor = "#4cbb17"
 sFont = "Jost-Regular.ttf" 
 # Font size for the clock
 iFontSize = 32 
+
+[Settings.Hotkeys]
+sEditorToggleKey = "F11"
 

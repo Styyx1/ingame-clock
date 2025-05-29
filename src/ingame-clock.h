@@ -1,29 +1,43 @@
 #pragma once
-
 #include "imgui.h"
-#include "settings.h"
 
 
 namespace IngameClock
 {
-    class ClockOverlay
+	class ClockOverlay : public REX::Singleton<ClockOverlay>
     {
     public:
-        static void Draw();
-        static void SetVisible(bool visible);
-        static bool IsVisible();
-        static inline Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> clockTexture;
-        static inline ImTextureID clockTextureID;
-        static Settings::Values::RGBA GetClockColor();
-        static inline Settings::Values::RGBA textColor{0xFF, 0xFF, 0xFF, 0xFF};
+        void Draw();
+        void SetVisible(bool visible);
+        bool IsVisible() const;
+        void SetEditorMode(bool active);
+        bool IsEditorModeActive() const;
+        
+        ImColor GetClockColor();
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> clockTexture;
+        ImTextureID clockTextureID;
+        ImColor textColor{0xFF, 0xFF, 0xFF, 0xFF};
+        void FocusLost();
+        void FocusRegained();
+        void RefreshVisibility();
 
     private:
-        static void SetClockText(std::string &input);
-        inline static bool visible = true;
-        inline static float scale = 1.0f;
-        inline static ImVec2 position = ImVec2(50, 50);
-        inline static float clockTextureSizeX;
-        inline static float clockTextureSizeY;
-        
+        void SetClockText(std::string& input);
+        void DrawEditor();
+        void InitEditor();
+        void DrawClock();
+        void InitSettings();
+        std::string GetGameTimeText() const;
+		std::string GetRealTimeText() const;
+        bool editor_active = false;
+        bool visible = true;
+        ImVec2 currentWindowPos = ImVec2(0, 0);
+        bool _lostFocus = false;
+		bool use24hFormat = false;
+		bool show_real_time = false;
+        bool show_game_time = true;
+		bool settings_initialised = false;        
+        float scale = 1.0f;
+        float alpha = 1.0f;
     };
 }

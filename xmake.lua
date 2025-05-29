@@ -58,6 +58,7 @@ target("ingame-clock")
     add_files("lib/imgui/backends/imgui_impl_dx11.cpp")
     add_files("lib/imgui/backends/imgui_impl_win32.cpp")
     add_headerfiles("src/extern/**.h")
+    add_includedirs("extern/CLibUtil/include", { public = true })
 
 after_build(function(target)
     local copy = function(env, ext)
