@@ -3,8 +3,6 @@
 
 using namespace RE;
 
-             // Use ImGui::GetCurrentContext()
-
 namespace Hooks {
     void Hooks::Renderer::Present(uint32_t a1)
     {
@@ -30,20 +28,7 @@ namespace Hooks {
         auto& trampoline = SKSE::GetTrampoline();
         func = trampoline.write_call<5>(presentHook.address(), Present);
     }
-    std::int32_t FrameUpdate::FrameUpdateHook(float a_delta)
-    {
-        if (frameUpdateCount > 150) {
-            frameUpdateCount = 0.0f;
 
-        }
-        frameUpdateCount++;
-        return frameUpdateHook(a_delta);
-    }
-    void FrameUpdate::Install() {
-        REL::Relocation<std::uintptr_t> main_update{ RELOCATION_ID(35565, 36564), OFFSET(0x748, 0xc26) };
-        auto& trampoline = SKSE::GetTrampoline();
-        frameUpdateHook = trampoline.write_call<5>(main_update.address(), &FrameUpdateHook);
-    }
     void SwapChainHook::RendererInit()
     {
         func();  // call original
@@ -75,16 +60,15 @@ namespace Hooks {
 
             if (!bStyleApplied) {
                 ApplyClockStyle();
-                logs::info("applied clock style");
+                logs::debug("applied clock style");
                 bStyleApplied = true;
             }
 
             if (!bColorApplied) {
 				logs::debug("Applying clock color");
-                ingameClock->textColor = ingameClock->GetClockColor();
+                ingameClock->SetColor(settings->clock_text_color.GetValue());
                 bColorApplied = true;
             }
-
 
             auto& io = ImGui::GetIO();
             io.ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad | ImGuiConfigFlags_NavEnableSetMousePos;
@@ -92,29 +76,23 @@ namespace Hooks {
             io.FontGlobalScale = settings->clock_scale.GetValue();
 
             std::string fontPath = Settings::Constants::font_file_path + settings->font_name.GetValue();
-
             ImFont* font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), settings->font_size.GetValue());
+
             if (!font) {
-                // fallback to default font if loading failed
-
+                // default font if loading failed
                 ImFontConfig config;
-                config.SizePixels = (float)settings->font_size.GetValue();  // or whatever size you want
-
+                config.SizePixels = (float)settings->font_size.GetValue();
                 font = io.Fonts->AddFontDefault(&config);
-                // Optionally log this failure somewhere
                 logs::warn("Failed to load font at {}, falling back to default font. ", fontPath);
             }
-
             if (!ImGui_ImplWin32_Init(desc.OutputWindow)) {
                 logs::error("ImGui Win32 init failed");
                 return;
             }
-
             if (!ImGui_ImplDX11_Init(device, context)) {
                 logs::error("ImGui DX11 init failed");
                 return;
             }
-
             logs::info("ImGui initialized.");
             bInitialized = true;
 
@@ -126,29 +104,20 @@ namespace Hooks {
             if (!WndProc::func) {
                 logs::error("SetWindowLongPtrA failed!");
             }
-
         }
-
     }
+
     void SwapChainHook::ApplyClockStyle()
     {
         ImGuiStyle& style = ImGui::GetStyle();
-
-        // Use dark colors but keep it semi-transparent
         style.WindowRounding = 5.0f;
         style.WindowBorderSize = 1.0f;
-
-        style.Colors[ImGuiCol_WindowBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.3f);  // translucent black bg
-        style.Colors[ImGuiCol_Text] = ImVec4(1.0f, 0.9f, 0.7f, 1.0f);       // warm off-white text
-
+        style.Colors[ImGuiCol_WindowBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.3f);  
+        style.Colors[ImGuiCol_Text] = ImVec4(1.0f, 0.9f, 0.7f, 1.0f);
         style.Colors[ImGuiCol_Border] = ImVec4(1.0f, 0.9f, 0.7f, 0.0f);
-
-        // No title bar, no resize grip, minimal padding
         style.WindowPadding = ImVec2(8, 6);
         style.FramePadding = ImVec2(4, 2);
-
         style.ItemSpacing = ImVec2(6, 4);
-
         style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
     }
 

@@ -38,25 +38,7 @@ using namespace clib_util;
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);   
 
-namespace stl
-{
-	using namespace SKSE::stl;
-
-	template <class T>
-	void write_thunk_call(std::uintptr_t a_src)
-	{
-		auto& trampoline = SKSE::GetTrampoline();
-		T::func = trampoline.write_call<5>(a_src, T::thunk);
-	}
-
-	template <class F, class T>
-	void write_vfunc()
-	{
-		REL::Relocation<std::uintptr_t> vtbl{ F::VTABLE[0] };
-		T::func = vtbl.write_vfunc(T::idx, T::thunk);
-	}
-}
-
+//#define DO_DEBUG_LOGGING
 
 #ifdef SKYRIM_SUPPORT_AE
 #	define REL_ID(se, ae) REL::ID(ae)

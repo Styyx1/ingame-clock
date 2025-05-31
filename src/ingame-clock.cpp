@@ -3,22 +3,23 @@
 
 void IngameClock::ClockOverlay::Draw()
 {
-    if (!visible)
-        return;
+    if (ShouldRefresh()) {
+        RefreshSettings();
+    }
 
     const auto settings = Settings::Manager::GetSingleton();
-    //if (!settings->show_real_time.GetValue() && !settings->show_game_time.GetValue()) {
-    //    if (!editor_active) {
-    //        visible = false;
-    //    }        
-    //    return;
-    //}
+    if (!shouldDraw() ) {
+#ifdef DO_DEBUG_LOGGING
+        logs::debug("Not Visible, skip drawing entirely");
+#endif
+        return;
+    }  
     InitSettings();
 
     auto& io = ImGui::GetIO();
     io.ConfigWindowsMoveFromTitleBarOnly = !editor_active;
     // Apply window position based on mode
-    if (editor_active) {		
+    if (IsEditorModeActive()) {		
         InitEditor();
     } else {
         io.MouseDrawCursor = false;
@@ -37,13 +38,64 @@ void IngameClock::ClockOverlay::Draw()
     ImGui::Begin("Ingame Clock", nullptr, windowFlags);
 
     currentWindowPos = ImGui::GetWindowPos();
+	settings->clock_position_x.SetValue(currentWindowPos.x);
+	settings->clock_position_y.SetValue(currentWindowPos.y);
+
     DrawClock();
 
-    if (editor_active) {
+    if (IsEditorModeActive()) {
         DrawEditor();        
     }
 
     ImGui::End();
+}
+void IngameClock::ClockOverlay::SetColor(const std::string& color, bool save)
+{
+	const auto settings = Settings::Manager::GetSingleton();
+	textColor = settings->RGBAtoImColor(settings->hexToRGBA(color, settings->clock_alpha.GetValue()));
+	settings->clock_text_color.SetValue(settings->ImColorToHex(textColor));
+    if (save)
+        settings->Save();
+}
+void IngameClock::ClockOverlay::SetWindowPosition(float x, float y, bool save)
+{
+    currentWindowPos.x = x; 
+    currentWindowPos.y = y;
+    if (save) {
+        const auto settings = Settings::Manager::GetSingleton();
+        settings->clock_position_x.SetValue(currentWindowPos.x);
+        settings->clock_position_y.SetValue(currentWindowPos.y);
+        settings->Save();
+    }
+    
+}
+void IngameClock::ClockOverlay::SetExternallyControlled(bool a_enable, std::string& a_modName)
+{
+    if (a_enable) {
+        external_controls = true;
+        external_control_mod = a_modName;
+        logs::info("{} disabled visibility controls", a_modName);
+    } else {
+        external_controls = false;
+        logs::info("{} re-enabled visibility controls", a_modName);
+        external_control_mod.reset();
+    }
+}
+bool IngameClock::ClockOverlay::IsExternallyControlled() const
+{
+    return external_controls;
+}
+std::optional<std::string> IngameClock::ClockOverlay::GetExternallyControllingModName() const
+{
+    return external_control_mod;
+}
+std::string IngameClock::ClockOverlay::GetGameTimeString()
+{
+    return GetGameTimeText();
+}
+std::string IngameClock::ClockOverlay::GetRealTimeString()
+{
+	return GetRealTimeText();
 }
 void IngameClock::ClockOverlay::DrawEditor()
 {
@@ -53,22 +105,21 @@ void IngameClock::ClockOverlay::DrawEditor()
     ImGui::Separator();
     ImGui::Text("Editor Mode Active");
     
-    if (ImGui::SliderFloat("Scale", &scale, 0.5f, 5.0f)) {
+    if (ImGui::SliderFloat("Scale", &scale, 0.1f, 10.0f)) {
         settings->clock_scale.SetValue(scale);
-        io.FontGlobalScale = scale; // live update
+        io.FontGlobalScale = scale;
     }
 
 	if (ImGui::Checkbox("Toggle 24h Format", &use24hFormat)) {
 		settings->use_24_hour_format.SetValue(use24hFormat);
-        settings->Save();
 	}
+    ImGui::SameLine();
 	if (ImGui::Checkbox("Show Real Time", &show_real_time)) {
 		settings->show_real_time.SetValue(show_real_time);
-		settings->Save();
 	}
+    ImGui::SameLine();
 	if (ImGui::Checkbox("Show Game Time", &show_game_time)) {
 		settings->show_game_time.SetValue(show_game_time);
-		settings->Save();
 	}
 
     if (ImGui::ColorEdit4("Text Color", (float*)&textColor)) {
@@ -105,12 +156,6 @@ void IngameClock::ClockOverlay::DrawClock()
 		ImGui::Text("%s", GetRealTimeText().c_str());
 		ImGui::PopStyleColor();
 	}
-
-    /*std::string text;
-    SetClockText(text);
-    ImGui::PushStyleColor(ImGuiCol_Text, textColor.Value);
-    ImGui::Text("%s", text.c_str());
-    ImGui::PopStyleColor();*/
 }
 
 void IngameClock::ClockOverlay::InitSettings()
@@ -119,12 +164,22 @@ void IngameClock::ClockOverlay::InitSettings()
 		return;
 	}
 	settings_initialised = true;
+    ManipulateSettingValues();
+}
+
+bool IngameClock::ClockOverlay::shouldDraw() const
+{
 	const auto settings = Settings::Manager::GetSingleton();
-	scale = settings->clock_scale.GetValue();
-	use24hFormat = settings->use_24_hour_format.GetValue();
-	show_game_time = settings->show_game_time.GetValue();
-	show_real_time = settings->show_real_time.GetValue();
-	textColor = settings->RGBAtoImColor(settings->hexToRGBA(settings->clock_text_color.GetValue(), settings->clock_alpha.GetValue()));
+	if (editor_active) {
+		return true; // Override visibility if editor is active
+	}
+
+	bool anyTimeShown = settings->show_real_time.GetValue() || settings->show_game_time.GetValue();
+    if (!anyTimeShown) {
+		return false; // If neither time is shown, don't draw
+    }
+
+    return force_visible;
 }
 
 std::string IngameClock::ClockOverlay::GetGameTimeText() const
@@ -175,36 +230,23 @@ std::string IngameClock::ClockOverlay::GetRealTimeText() const
 
 void IngameClock::ClockOverlay::SetVisible(bool v)
 {
-    visible = v;
+    force_visible = v;
 }
 
 bool IngameClock::ClockOverlay::IsVisible() const
 {
-    return visible;
+    return force_visible;
 }
 
 void IngameClock::ClockOverlay::SetEditorMode(bool active)
 {
 	const auto settings = Settings::Manager::GetSingleton();
 
-
-    if (active && !editor_active) {
-        // Entering editor mode — load current settings
-        scale = settings->clock_scale.GetValue();
-		use24hFormat = settings->use_24_hour_format.GetValue();
-		show_game_time = settings->show_game_time.GetValue();
-		show_real_time = settings->show_real_time.GetValue();
+    if (!active && editor_active) {
+        settings->Save();
     }
-    else if (!active && editor_active) {
-        logs::info("Saving settings on editor exit");
-        // Exiting editor mode — save position and values
-        settings->clock_position_x.SetValue(currentWindowPos.x);
-        settings->clock_position_y.SetValue(currentWindowPos.y);
-        settings->clock_scale.SetValue(scale);
-    }
-    settings->Save();
     editor_active = active;
-    RefreshVisibility();
+    
 }
 
 bool IngameClock::ClockOverlay::IsEditorModeActive() const
@@ -220,66 +262,67 @@ ImColor IngameClock::ClockOverlay::GetClockColor()
     return textColor;
 }
 
-
-
 void IngameClock::ClockOverlay::FocusLost()
 {
 	_lostFocus = true;
 	ImGui::GetIO().ClearInputKeys();
 	ImGui::GetIO().MouseDrawCursor = false; // Hide cursor when focus is lost
     SetEditorMode(false); // Exit editor mode if focus is lost
-	logs::info("Focus lost, clearing input keys and hiding cursor");
+#ifdef DO_DEBUG_LOGGING
+	logs::debug("Focus lost, clearing input keys and hiding cursor");
+#endif
 }
 
 void IngameClock::ClockOverlay::FocusRegained()
 {
     _lostFocus = false;
     ImGui::GetIO().MouseDrawCursor = true; // Hide cursor when focus is lost
-    logs::info("Focus regained — state restored.");
+#ifdef DO_DEBUG_LOGGING
+    logs::debug("Focus regained — state restored.");
+#endif
 }
 
-void IngameClock::ClockOverlay::RefreshVisibility()
+bool IngameClock::ClockOverlay::Uses24HourFormat() const
+{
+    return use24hFormat;
+}
+
+void IngameClock::ClockOverlay::ManipulateSettingValues()
 {
     const auto settings = Settings::Manager::GetSingleton();
-    visible = editor_active || settings->show_real_time.GetValue() || settings->show_game_time.GetValue();
+
+    currentWindowPos.x = settings->clock_position_x.GetValue();
+    currentWindowPos.y = settings->clock_position_y.GetValue();
+    alpha = std::clamp(settings->clock_alpha.GetValue(), 0.0f, 1.0f);
+    scale = std::clamp(settings->clock_scale.GetValue(), 0.1f, 10.0f);
+    use24hFormat = settings->use_24_hour_format.GetValue();
+    show_game_time = settings->show_game_time.GetValue();
+    show_real_time = settings->show_real_time.GetValue();
+    SetColor(settings->clock_text_color.GetValue());   
 }
 
-void IngameClock::ClockOverlay::SetClockText(std::string& input)
+void IngameClock::ClockOverlay::Set24HourFormat(bool activate)
 {
-    auto calendar = RE::Calendar::GetSingleton();
-	const auto settings = Settings::Manager::GetSingleton();
+	use24hFormat = activate;
+}
 
-    if (show_game_time) {
+void IngameClock::ClockOverlay::RefreshSettings() {
+    const auto settings = Settings::Manager::GetSingleton();
+    settings->Load();
 
-    }
+    ManipulateSettingValues();
 
+    should_refresh_settings = false;
+}
 
-    if (calendar) {
-        int hour = static_cast<int>(calendar->GetCurrentGameTime() * 24) % 24;
-        int minute = static_cast<int>((calendar->GetCurrentGameTime() * 1440)) % 60;
-        std::string day = calendar->GetDayName();
+void IngameClock::ClockOverlay::RequestRefresh()
+{
+    should_refresh_settings = true;
+}
 
-        if (settings->use_24_hour_format.GetValue()) {
-            input = std::format("{}: {:02}:{:02}", day, hour, minute);
-        } else {
-            std::string ampm = (hour >= 12) ? "PM" : "AM";
-            hour = (hour == 0) ? 12 : (hour > 12 ? hour - 12 : hour);
-            input = std::format("{}: {:02}:{:02} {}", day, hour, minute, ampm);
-        }
-    } else {
-        auto now = std::chrono::system_clock::now();
-        auto time = std::chrono::system_clock::to_time_t(now);
-        std::tm localTime{};
-        localtime_s(&localTime, &time);
-
-        if (settings->use_24_hour_format.GetValue()) {
-            input = std::format("Real Time: {:02}:{:02}:{:02}", localTime.tm_hour, localTime.tm_min, localTime.tm_sec);
-        } else {
-            std::string ampm = (localTime.tm_hour >= 12) ? "PM" : "AM";
-            int hour = (localTime.tm_hour == 0) ? 12 : (localTime.tm_hour > 12 ? localTime.tm_hour - 12 : localTime.tm_hour);
-            input = std::format("Real Time: {:02}:{:02}:{:02} {}", hour, localTime.tm_min, localTime.tm_sec, ampm);
-        }
-    }
+bool IngameClock::ClockOverlay::ShouldRefresh() const
+{
+    return should_refresh_settings;
 }
 
 

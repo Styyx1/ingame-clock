@@ -1,5 +1,7 @@
 #pragma once
 
+// shad0wshayd3 and Qudix for answering my question about the save function and for their implementation of REX::...
+
 namespace Settings {
 
 	struct RGBA {
@@ -10,7 +12,6 @@ namespace Settings {
 	public:
 		// Settings values
 		inline static REX::TOML::Bool enable_debug_log{ "Settings.Debugging", "bEnableDebugLogs", false };
-		inline static REX::TOML::Bool should_show_clock{ "Settings.Toggles", "bShowClock", true };
 		inline static REX::TOML::Bool use_24_hour_format{ "Settings.Toggles", "bUse24HourFormat", true };
 		inline static REX::TOML::Bool show_real_time{ "Settings.Toggles", "bShowRealTime", false };
 		inline static REX::TOML::Bool show_game_time{ "Settings.Toggles", "bShowGameTime", true };
@@ -25,6 +26,7 @@ namespace Settings {
 		inline static REX::TOML::I32 font_size{ "Settings.Fonts", "iFontSize", 27 };
 
 		inline static REX::TOML::Str editor_toggle_key{ "Settings.Hotkeys", "sEditorToggleKey", (std::string)"F11" };
+		inline static REX::TOML::Str clock_toggle_key{ "Settings.Hotkeys", "sClockToggleKey", (std::string)"F10" };
 
 		// Functions
 		void Load();

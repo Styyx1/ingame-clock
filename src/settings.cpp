@@ -24,15 +24,20 @@ void Settings::Manager::Save() {
 
 void Settings::Manager::Log() {
 	logs::debug("***************** SETTINGS *****************");
-	logs::debug("Show Clock: {}", should_show_clock.GetValue() ? "true" : "false");
 	logs::debug("Use 24-Hour Format: {}", use_24_hour_format.GetValue() ? "true" : "false");
 	logs::debug("Position X: {}", clock_position_x.GetValue());
 	logs::debug("Position Y: {}", clock_position_y.GetValue());
 	logs::debug("Scale: {}", clock_scale.GetValue());
 	logs::debug("Alpha: {}", clock_alpha.GetValue());
-	logs::debug("Text Color: {}", clock_text_color.GetValue());
-	logs::debug("Font Name: {}", font_name.GetValue());
+	logs::debug("Text Color: {}", clock_text_color.GetValue().c_str());
+	logs::debug("Font Name: {}", font_name.GetValue().c_str());
 	logs::debug("Font Size: {}", font_size.GetValue());
+	logs::debug("Editor Toggle Key: {}", editor_toggle_key.GetValue().c_str());
+	logs::debug("Clock Toggle Key: {}", clock_toggle_key.GetValue().c_str());
+	logs::debug("Show Real Time: {}", show_real_time.GetValue() ? "true" : "false");
+	logs::debug("Show Game Time: {}", show_game_time.GetValue() ? "true" : "false");
+	logs::debug("Debug Logging Enabled: {}", enable_debug_log.GetValue() ? "true" : "false");
+
 	logs::debug("**********************************************");
 }
 
@@ -44,9 +49,7 @@ Settings::RGBA Settings::Manager::hexToRGBA(const std::string& hex, float fallba
 		logs::error("Invalid hex color format: {}", hex);
 		return { 255, 255, 255, 255 };
 	}
-
 	std::string hexValue = (hex[0] == '#') ? hex.substr(1) : hex.substr(2);
-
 	unsigned int value;
 	std::stringstream ss;
 	ss << std::hex << hexValue;
@@ -72,7 +75,6 @@ Settings::RGBA Settings::Manager::hexToRGBA(const std::string& hex, float fallba
 		logs::error("Invalid hex color length: {}", hex);
 		return { 255, 255, 255, 255 };
 	}
-
 	return rgba;
 }
 
