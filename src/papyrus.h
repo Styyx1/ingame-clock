@@ -16,7 +16,6 @@ namespace PapyrusFunctions
         {
             kVersion = 1
         };
-
         int GetVersion(SCRIPT_ARGS);
         void ToggleClock(SCRIPT_ARGS);
         void HideClock(SCRIPT_ARGS);
@@ -33,7 +32,6 @@ namespace PapyrusFunctions
         float GetPositionY(SCRIPT_ARGS);
         RE::BSFixedString GetGameTimeText(SCRIPT_ARGS);
         RE::BSFixedString GetRealTimeText(SCRIPT_ARGS);
-
         void Bind(RE::BSScript::Internal::VirtualMachine& a_vm);
     }
 }

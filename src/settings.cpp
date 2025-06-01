@@ -37,11 +37,11 @@ void Settings::Manager::Log() {
 	logs::debug("Show Real Time: {}", show_real_time.GetValue() ? "true" : "false");
 	logs::debug("Show Game Time: {}", show_game_time.GetValue() ? "true" : "false");
 	logs::debug("Debug Logging Enabled: {}", enable_debug_log.GetValue() ? "true" : "false");
-
 	logs::debug("**********************************************");
 }
 
 Settings::RGBA Settings::Manager::hexToRGBA(const std::string& hex, float fallback_alpha) {
+	
 	size_t len = hex.size();
 
 	if (!((len == 7 && hex[0] == '#') || (len == 9 && hex[0] == '#') ||
@@ -57,7 +57,6 @@ Settings::RGBA Settings::Manager::hexToRGBA(const std::string& hex, float fallba
 		logs::error("Failed to parse hex value");
 		return { 255, 255, 255, 255 };
 	}
-
 	RGBA rgba;
 	if (hexValue.size() == 8) {
 		rgba.r = (value >> 24) & 0xFF;

@@ -16,7 +16,6 @@ void InputHandler::InputManager::SetEditorKey()
         logs::error("Failed to set {} for editor acivation key", settings->editor_toggle_key.GetValue());
 	if (!toggle_clock_visibility.SetPattern(settings->clock_toggle_key.GetValue()))
 		logs::error("Failed to set {} for clock visibility toggle key", settings->clock_toggle_key.GetValue());
-
 }
 
 void InputHandler::InputManager::ToggleEditMode(const hotkeys::KeyCombination* key)
@@ -32,8 +31,7 @@ void InputHandler::InputManager::ToggleClockVisibility(const hotkeys::KeyCombina
     if (!ingameClock->IsExternallyControlled()) {
         logs::debug("Toggling editor mode, current state: {}", ingameClock->IsVisible() ? "active" : "inactive");
         ingameClock->SetVisible(!ingameClock->IsVisible());
-    }
-    
+    }    
 }
 
 RE::BSEventNotifyControl InputHandler::InputManager::ProcessEvent(RE::InputEvent* const* a_event, RE::BSTEventSource<RE::InputEvent*>* a_eventSource)
@@ -45,8 +43,7 @@ RE::BSEventNotifyControl InputHandler::InputManager::ProcessEvent(RE::InputEvent
         return Result::kContinue;
 
     toggle_clock_visibility.Process(a_event);
-    activate_editor_key.Process(a_event);
-	
+    activate_editor_key.Process(a_event);	
 
     return Result::kContinue;
 }

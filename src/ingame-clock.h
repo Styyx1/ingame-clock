@@ -1,7 +1,6 @@
 #pragma once
 #include "imgui.h"
 #include <unordered_set>
-
 // huge thanks to po3 (photo mode: https://github.com/powerof3/PhotoMode) and Ersh (open animation replacer: https://github.com/ersh1/OpenAnimationReplacer).
 // everything i did with ImGui is based on their work in some way or another.
 

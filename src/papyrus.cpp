@@ -8,7 +8,6 @@ namespace PapyrusFunctions
             logs::critical("couldn't get VM State"sv);
             return false;
         }
-
         logs::info("{:*^30}", "FUNCTIONS"sv);
         Functions::Bind(*a_vm);
         return true;
@@ -193,7 +192,6 @@ namespace PapyrusFunctions
             a_vm.RegisterFunction("GetPositionY", script, GetPositionY);
             a_vm.RegisterFunction("GetGameTimeText", script, GetGameTimeText);
             a_vm.RegisterFunction("GetRealTimeText", script, GetRealTimeText);
-
             logs::info("Registered Papyrus functions for Styyx_IngameClock"sv);
         }
     }
