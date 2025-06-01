@@ -107,10 +107,7 @@ namespace PapyrusFunctions
         void SetScale(SCRIPT_ARGS, float a_scale)
         {
             if (auto overlay = IngameClock::ClockOverlay::GetSingleton()) {
-                overlay->SetScale(a_scale);
-                if (const auto settings = Settings::Manager::GetSingleton()) {
-                    settings->Save();
-                }
+                overlay->SetScale(a_scale, true);
             } else {
                 logs::error("IngameClock::ClockOverlay is not initialized"sv);
             }
@@ -119,10 +116,7 @@ namespace PapyrusFunctions
         void SetColor(SCRIPT_ARGS, RE::BSFixedString a_color)
         {
             if (auto overlay = IngameClock::ClockOverlay::GetSingleton()) {
-                overlay->SetColor(a_color.c_str());
-                if (const auto settings = Settings::Manager::GetSingleton()) {
-                    settings->Save();
-                }
+                overlay->SetColor(a_color.c_str(), true);
             } else {
                 logs::error("IngameClock::ClockOverlay is not initialized"sv);
             }
@@ -131,10 +125,7 @@ namespace PapyrusFunctions
         void SetPosition(SCRIPT_ARGS, float a_x, float a_y)
         {
             if (auto overlay = IngameClock::ClockOverlay::GetSingleton()) {
-                overlay->SetWindowPosition(a_x, a_y);
-                if (const auto settings = Settings::Manager::GetSingleton()) {
-                    settings->Save();
-                }
+                overlay->SetWindowPosition(a_x, a_y, true);
             } else {
                 logs::error("IngameClock::ClockOverlay is not initialized"sv);
             }

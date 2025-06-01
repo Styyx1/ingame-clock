@@ -26,6 +26,8 @@ void IngameClock::ClockOverlay::Draw()
         ImGui::SetNextWindowPos(ImVec2(settings->clock_position_x.GetValue(), settings->clock_position_y.GetValue()), ImGuiCond_Always);
     }
 
+    io.FontGlobalScale = scale;
+
     ImGui::SetNextWindowBgAlpha(settings->clock_alpha.GetValue());
 
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoTitleBar;
@@ -49,6 +51,16 @@ void IngameClock::ClockOverlay::Draw()
 
     ImGui::End();
 }
+void IngameClock::ClockOverlay::SetScale(float newScale, bool save)
+{
+    scale = newScale;
+    if (save) {
+        auto settings = Settings::Manager::GetSingleton();
+        settings->clock_scale.SetValue(scale);
+        settings->Save();
+    }
+
+}
 void IngameClock::ClockOverlay::SetColor(const std::string& color, bool save)
 {
 	const auto settings = Settings::Manager::GetSingleton();
@@ -69,25 +81,27 @@ void IngameClock::ClockOverlay::SetWindowPosition(float x, float y, bool save)
     }
     
 }
-void IngameClock::ClockOverlay::SetExternallyControlled(bool a_enable, std::string& a_modName)
+void IngameClock::ClockOverlay::SetControlDisabler(const std::string& a_modName, bool a_enable)
 {
-    if (a_enable) {
-        external_controls = true;
-        external_control_mod = a_modName;
-        logs::info("{} disabled visibility controls", a_modName);
-    } else {
-        external_controls = false;
-        logs::info("{} re-enabled visibility controls", a_modName);
-        external_control_mod.reset();
-    }
+    std::lock_guard lock(mutex);
+    std::string modName(a_modName);
+    if (a_enable)
+        controlDisablers.insert(modName);
+    else
+        controlDisablers.erase(modName);
 }
 bool IngameClock::ClockOverlay::IsExternallyControlled() const
 {
-    return external_controls;
+    std::lock_guard lock(mutex);
+    return !controlDisablers.empty();
 }
-std::optional<std::string> IngameClock::ClockOverlay::GetExternallyControllingModName() const
+std::string IngameClock::ClockOverlay::GetExternallyControllingModName() const
 {
-    return external_control_mod;
+    std::lock_guard lock(mutex);
+    if (!controlDisablers.empty())
+        logs::debug("controling mod name {}", *controlDisablers.begin());
+        return *controlDisablers.begin();
+    return "";
 }
 std::string IngameClock::ClockOverlay::GetGameTimeString()
 {

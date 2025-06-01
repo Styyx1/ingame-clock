@@ -1,5 +1,6 @@
 #pragma once
 #include "imgui.h"
+#include <unordered_set>
 
 // huge thanks to po3 (photo mode: https://github.com/powerof3/PhotoMode) and Ersh (open animation replacer: https://github.com/ersh1/OpenAnimationReplacer).
 // everything i did with ImGui is based on their work in some way or another.
@@ -28,12 +29,12 @@ namespace IngameClock
 		void SetShowRealTime(bool activate) { show_real_time = activate; }
 		void SetShowGameTime(bool activate) { show_game_time = activate; }
 		float GetScale() const { return scale; }
-		void SetScale(float newScale) { scale = newScale; }
+        void SetScale(float newScale, bool save);
         void SetColor(const std::string& color, bool save = false);
         void SetWindowPosition(float x, float y, bool save = false);
-        void SetExternallyControlled(bool a_enable, std::string& a_modName);
+        void SetControlDisabler(const std::string& a_modName, bool a_enable);
         bool IsExternallyControlled() const;
-        std::optional<std::string> GetExternallyControllingModName() const;
+        [[nodiscard]] std::string GetExternallyControllingModName() const;
 		bool GetPositionX() const { return currentWindowPos.x; }
 		bool GetPositionY() const { return currentWindowPos.y; }
         std::string GetGameTimeString();
@@ -42,7 +43,9 @@ namespace IngameClock
         void RequestRefresh();
         bool ShouldRefresh() const;
 
-    private:       
+    private:
+        mutable std::mutex mutex;
+        std::unordered_set<std::string> controlDisablers;
         void DrawEditor();
         void InitEditor();
         void DrawClock();
@@ -63,6 +66,6 @@ namespace IngameClock
         float scale = 1.0f;
         float alpha = 1.0f;
         bool external_controls = false;
-        std::optional<std::string> external_control_mod{std::nullopt};
+        std::string external_control_mod{""};
     };
 }
