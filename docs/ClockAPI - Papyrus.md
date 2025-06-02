@@ -66,7 +66,6 @@ Event OnStoryChangeLocation(ObjectReference akActor, Location akOldLocation, Loc
                 HideClock()
             else
                 ShowClock()
-                ; code
             EndIf
         endif
     ElseIf (!PlayerRef.IsInInterior())

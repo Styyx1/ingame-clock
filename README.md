@@ -1,6 +1,6 @@
-# CommonLibSSE Plugin Template
+# Styyx Ingame Clock
 
-This is a basic plugin template using CommonLibSSE.
+ImGui based SKSE plugin to show an ingame clock. Comes with settings like showing the real time or changing the time format. Comes with a toggleable editor mod and position of the clock can be changed via drag and dropping in editor mode
 
 ### Requirements
 * [XMake](https://xmake.io) [2.8.2+]

@@ -31,7 +31,7 @@ namespace IngameClock
         void SetScale(float newScale, bool save);
         void SetColor(const std::string& color, bool save = false);
         void SetWindowPosition(float x, float y, bool save = false);
-        void SetControlDisabler(const std::string& a_modName, bool a_enable);
+        void SetControlDisabler(const char* a_modName, bool a_enable);
         bool IsExternallyControlled() const;
         [[nodiscard]] std::string GetExternallyControllingModName() const;
 		bool GetPositionX() const { return currentWindowPos.x; }
@@ -43,7 +43,7 @@ namespace IngameClock
         bool ShouldRefresh() const;
 
     private:
-        mutable std::mutex mutex;
+        mutable std::shared_mutex mutex;
         std::unordered_set<std::string> controlDisablers;
         void DrawEditor();
         void InitEditor();

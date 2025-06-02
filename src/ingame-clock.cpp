@@ -73,20 +73,22 @@ void IngameClock::ClockOverlay::SetWindowPosition(float x, float y, bool save)
 {
     currentWindowPos.x = x; 
     currentWindowPos.y = y;
-    if (save) {
-        const auto settings = Settings::Manager::GetSingleton();
-        settings->clock_position_x.SetValue(currentWindowPos.x);
-        settings->clock_position_y.SetValue(currentWindowPos.y);
+    const auto settings = Settings::Manager::GetSingleton();
+    settings->clock_position_x.SetValue(currentWindowPos.x);
+    settings->clock_position_y.SetValue(currentWindowPos.y);
+    if (save) {        
         settings->Save();
     }
     
 }
-void IngameClock::ClockOverlay::SetControlDisabler(const std::string& a_modName, bool a_enable)
+void IngameClock::ClockOverlay::SetControlDisabler(const char* a_modName, bool a_enable)
 {
     std::lock_guard lock(mutex);
     std::string modName(a_modName);
-    if (a_enable)
+    if (a_enable) {
+        logs::info("{} is disabling controls", modName);
         controlDisablers.insert(modName);
+    }        
     else
         controlDisablers.erase(modName);
 }

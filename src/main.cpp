@@ -28,10 +28,14 @@ extern "C" __declspec(dllexport) IngameClockAPI* RequestIngameClockAPI()
 
 void ListenerCallback(SKSE::MessagingInterface::Message* a_message)
 {
-	if (a_message->type == SKSE::MessagingInterface::kDataLoaded) {
+	if (a_message->type == SKSE::MessagingInterface::kInputLoaded) {
 		auto inputManager = InputHandler::InputManager::GetSingleton();
 		inputManager->Register();
 		inputManager->SetEditorKey();
+	}
+
+	if (a_message->type == SKSE::MessagingInterface::kDataLoaded) {
+		
 		IngameClock::ClockOverlay::GetSingleton();
 	}
 }
